@@ -20,6 +20,8 @@ export Ceres_DIR=$TMP_ROOT_DIR/thirdparty/ceres-install-ios
 rm -rf $INSTALL_DIR
 mkdir $INSTALL_DIR
 
+mkdir -p _builds/$IOSTOOLCHAIN/detect_objects/Release-iphoneos
+
 try cd $TMP_ROOT_DIR
 try ${POLLY_ROOT}/bin/build.py --home $SRC_DIR --toolchain=$IOSTOOLCHAIN --ios-multiarch --config Release --target Primitect
 #try ${POLLY_ROOT}/bin/build.py --home $LIB_NAME --toolchain=$IOSTOOLCHAIN --ios-multiarch --config Debug
@@ -41,5 +43,5 @@ mkdir -p $INSTALL_DIR/lib/$LIB_NAME.framework
 LIPSTR="lipo -output $LIB_NAME-install/lib/$FINALLIBNAME -create _builds/$IOSTOOLCHAIN/detect_objects/Release-iphoneos/$LIB_NAME.dylib"
 `$LIPSTR`
 install_name_tool -id @rpath/$FINALLIBNAME $LIB_NAME-install/lib/$FINALLIBNAME
-cp Info.plist $INSTALL_DIR/lib/$LIB_NAME.framework/
+cp ios/Info.plist $INSTALL_DIR/lib/$LIB_NAME.framework/
 exit 0

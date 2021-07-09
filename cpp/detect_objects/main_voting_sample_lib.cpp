@@ -33,7 +33,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "detector/detectors.h"
 #include "detection_metrics.h"
 
-int detect(int argc, char** argv) {
+
+#if defined(WIN32) || defined(WINAPI_FAMILY)
+#define STDCALL __cdecl
+#ifdef _WINDLL
+  #define DECLDIR __declspec(dllexport)
+#else
+  #define DECLDIR __declspec(dllimport)
+#endif
+#else
+#define STDCALL
+#define DECLDIR __attribute__ ((visibility("default")))
+#endif
+
+extern "C" {
+
+DECLDIR int STDCALL detect(const char* commandline)
+{
+//================== INTRO TO PARSE MAIN LIKE STUFF ===================
+  char **argv = (char**)malloc(sizeof(char *)*32); // 16 max...
+  argv[0] = "detect";
+  int argc = 1;
+
+  //std::cout << "==================== " << commandline << " ======================" << std::endl;
+
+  char* cmd = (char*)malloc(strlen(commandline)+1); cmd[strlen(commandline)] = '\0';
+  sprintf(cmd,"%s",commandline);
+
+  //std::cout << "==================== " << cmd << " ======================" << std::endl;
+  // parse command line and put in # of arguments + arguments themselves...
+  char * pch;
+  pch = strtok (cmd," ");
+  while (pch != NULL && argc < 15)
+  {
+    //std::cout << "==== " << pch << " ====" << std::endl;
+    argv[argc++] = pch;
+    pch = strtok (NULL, " ");
+  }
+//================== INTRO TO PARSE MAIN LIKE STUFF ===================
 
     Timer T;
 
@@ -55,6 +92,8 @@ int detect(int argc, char** argv) {
     try {
         app.parse(argc, argv);
     } catch (const CLI::ParseError& e) {
+        free(argv);
+        free(cmd);
         return app.exit(e);
     }
 
@@ -108,6 +147,8 @@ int detect(int argc, char** argv) {
     }
     else {
         std::cerr << "Your specified object type is not supported (yet)." << std::endl;
+        free(argv);
+        free(cmd);
         return 1;
     }
 
@@ -162,6 +203,8 @@ int detect(int argc, char** argv) {
                 break;
             default:
                 std::cerr << "Your specified object type is not supported (yet)." << std::endl;
+                free(argv);
+                free(cmd);
                 return 1;
         }
 
@@ -192,5 +235,10 @@ int detect(int argc, char** argv) {
 
     delete detector;
 
+    free(argv);
+    free(cmd);
     return 0;
 }
+
+
+} // extern "C"
